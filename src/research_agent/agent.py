@@ -17,9 +17,11 @@ from research_agent.schema import CompanyReport
 logger = logging.getLogger(__name__)
 
 # Left unset, the SDK falls back to its own default model, which is not
-# necessarily the cheapest — pin explicitly. Override with
-# RESEARCH_AGENT_MODEL if you want more research quality at higher cost.
-MODEL = os.environ.get("RESEARCH_AGENT_MODEL", "haiku")
+# necessarily the cheapest — pin explicitly. haiku is cheaper but was
+# observed leaking raw tool-call syntax into text fields on this
+# multi-step tool-use + large structured-output task; sonnet is the
+# reliability/cost tradeoff. Override with RESEARCH_AGENT_MODEL as needed.
+MODEL = os.environ.get("RESEARCH_AGENT_MODEL", "sonnet")
 
 SYSTEM_PROMPT = """\
 You are a startup research analyst. Given a company name, research it using
