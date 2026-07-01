@@ -7,6 +7,7 @@ so there is no divergence between the two surfaces.
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from claude_agent_sdk import ClaudeAgentOptions, create_sdk_mcp_server, query, tool
@@ -14,6 +15,11 @@ from claude_agent_sdk import ClaudeAgentOptions, create_sdk_mcp_server, query, t
 from research_agent.schema import CompanyReport
 
 logger = logging.getLogger(__name__)
+
+# Left unset, the SDK falls back to its own default model, which is not
+# necessarily the cheapest — pin explicitly. Override with
+# RESEARCH_AGENT_MODEL if you want more research quality at higher cost.
+MODEL = os.environ.get("RESEARCH_AGENT_MODEL", "haiku")
 
 SYSTEM_PROMPT = """\
 You are a startup research analyst. Given a company name, research it using
@@ -84,6 +90,7 @@ async def run_research(company_name: str) -> CompanyReport:
         allowed_tools=["WebSearch", "WebFetch", "mcp__report__submit_report"],
         permission_mode="bypassPermissions",
         max_turns=MAX_TURNS,
+        model=MODEL,
     )
 
     prompt = (
