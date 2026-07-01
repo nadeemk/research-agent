@@ -1,0 +1,75 @@
+# Eval suite for the research agent, run with:  npx promptfoo@latest eval -c eval/promptfooconfig.yaml
+#
+# This is a starting "golden set" of companies with a few hand-verified,
+# stable facts (founding year) checked deterministically, plus one
+# LLM-as-judge check for overall report quality. Re-run this after any
+# change to the system prompt, tools, or model, and treat a score drop as
+# a regression.
+#
+# NOTE: founded_year values below were correct as of when this file was
+# written (2026-06-30) — verify against an authoritative source before
+# relying on them, and add more companies/fields as you build confidence.
+
+description: "Startup research agent — golden set eval"
+
+prompts:
+  - "{{company_name}}"
+
+providers:
+  - id: "python:eval/provider.py"
+
+defaultTest:
+  assert:
+    - type: is-json
+      value:
+        required: ["company_name", "overview", "sources"]
+
+tests:
+  - description: "Anthropic — known founding year, should find funding history"
+    vars:
+      company_name: "Anthropic"
+    assert:
+      - type: javascript
+        value: "JSON.parse(output).overview.founded_year === 2021"
+      - type: javascript
+        value: "JSON.parse(output).funding_rounds.length > 0"
+      - type: javascript
+        value: "JSON.parse(output).sources.length > 0"
+
+  - description: "Stripe — known founding year"
+    vars:
+      company_name: "Stripe"
+    assert:
+      - type: javascript
+        value: "JSON.parse(output).overview.founded_year === 2010"
+
+  - description: "Notion — known founding year"
+    vars:
+      company_name: "Notion"
+    assert:
+      - type: javascript
+        value: "JSON.parse(output).overview.founded_year === 2013"
+
+  - description: "Overall report quality (LLM-as-judge)"
+    vars:
+      company_name: "Anthropic"
+    assert:
+      - type: llm-rubric
+        value: >
+          The output is a JSON company report. It should have a clear,
+          accurate-sounding overview, at least one funding round or an
+          explicit confidence_notes explanation for why none was found,
+          and every claim should be traceable to a source URL. Penalize
+          vague filler text or fields that look fabricated rather than
+          researched.
+
+  - description: "Nonsense/unknown company name should not hallucinate a report"
+    vars:
+      company_name: "Zzqxlplorp Dynamics"
+    assert:
+      - type: llm-rubric
+        value: >
+          Given this is very likely not a real company, the report should
+          reflect genuine uncertainty (e.g. empty funding_rounds/news and a
+          confidence_notes field flagging that no real company was found)
+          rather than inventing plausible-sounding details.
