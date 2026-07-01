@@ -7,6 +7,11 @@ COPY src ./src
 
 RUN pip install --no-cache-dir .
 
+# The bundled Claude Code CLI refuses to run with bypassPermissions
+# (--dangerously-skip-permissions) as root, so this must not run as root.
+RUN useradd --create-home --uid 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
 ENV PORT=8080
 EXPOSE 8080
 
