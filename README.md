@@ -13,8 +13,11 @@ or a deployable HTTP API.
   `submit_report`, which the agent calls exactly once at the end with the
   full report. `run_research(company_name)` is the single entry point used
   by both the CLI and the API.
-- `src/research_agent/render.py` — renders a `CompanyReport` to Markdown.
-  JSON (`report.model_dump_json()`) is the canonical form.
+- `src/research_agent/render.py` — renders a `CompanyReport` to Markdown or
+  HTML (all agent/web-sourced text is HTML-escaped). JSON
+  (`report.model_dump_json()`) is the canonical form.
+- `src/research_agent/pdf.py` — renders a `CompanyReport` to PDF bytes by
+  running the HTML template through WeasyPrint. Optional dependency, see below.
 - `src/research_agent/cli.py` — Typer CLI: `research-agent "Company"`.
 - `src/research_agent/api.py` — FastAPI app: `POST /research`.
 - `eval/` — a promptfoo eval suite (see below).
@@ -39,9 +42,30 @@ pytest
 CLI:
 
 ```bash
-research-agent "Anthropic"
+research-agent "Anthropic"                                  # markdown to stdout
 research-agent "Anthropic" --format json --out anthropic.json
+research-agent "Anthropic" --format html --open              # writes anthropic.html and opens it
+research-agent "Anthropic" --format pdf --open                # writes anthropic.pdf and opens it
 ```
+
+`--format` is one of `markdown` (default), `json`, `html`, or `pdf`. `--open`
+opens the resulting file in your default viewer after writing it; if you use
+`--open` (or `--format pdf`) without `--out`, a filename is auto-generated
+from the company name in the current directory.
+
+PDF output needs the optional `pdf` extra, which pulls in
+[WeasyPrint](https://weasyprint.org/):
+
+```bash
+pip install -e ".[pdf]"
+```
+
+WeasyPrint also needs a few native libraries (Pango, Cairo, GDK-Pixbuf) —
+on macOS: `brew install pango`; on Debian/Ubuntu (also what to add to the
+Dockerfile if you want PDF support in the deployed API):
+`apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev`.
+If these aren't installed, `--format pdf` fails with a clear error rather
+than a stack trace.
 
 API (local):
 
