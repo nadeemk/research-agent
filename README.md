@@ -64,6 +64,20 @@ WeasyPrint also needs a few native libraries (Pango, Cairo, GDK-Pixbuf) —
 on macOS: `brew install pango`; on Debian/Ubuntu (also what to add to the
 Dockerfile if you want PDF support in the deployed API):
 `apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev`.
+
+### Calling a deployed instance from the CLI
+
+By default the CLI runs the agent locally (needs `ANTHROPIC_API_KEY`). Set
+`RESEARCH_AGENT_API_URL` (or pass `--api-url`) to instead call a deployed
+instance's `/research` endpoint over HTTP and render the result locally —
+no Anthropic key needed on the calling machine, just the deployment's
+`RESEARCH_AGENT_API_KEY`:
+
+```bash
+export RESEARCH_AGENT_API_URL=https://research-agent-xxxxx.us-central1.run.app
+export RESEARCH_AGENT_API_KEY=...   # the deployment's shared secret
+research-agent "Anthropic" --format html --open
+```
 If these aren't installed, `--format pdf` fails with a clear error rather
 than a stack trace.
 
