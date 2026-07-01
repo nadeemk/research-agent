@@ -111,20 +111,31 @@ is a regression. Grow the golden set as you find real failure cases.
 
 ## Deploying
 
-### GCP Cloud Run
+Live deployment: GCP project `research-agent-nk`, Cloud Run service
+`research-agent` in `us-central1`. **Deploys automatically on every push to
+`main`** via [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
+tests run first, then Cloud Build builds the image and Cloud Run is updated.
+Auth from GitHub Actions to GCP uses Workload Identity Federation (no
+service account key stored anywhere) — the workflow can impersonate the
+`github-deployer` service account only when running as this exact repo
+(`nadeemk/research-agent`).
+
+### GCP Cloud Run (manual / one-time setup)
 
 ```bash
-gcloud builds submit --tag gcr.io/<PROJECT_ID>/research-agent
+gcloud builds submit --tag us-central1-docker.pkg.dev/<PROJECT_ID>/research-agent/research-agent
 gcloud run deploy research-agent \
-  --image gcr.io/<PROJECT_ID>/research-agent \
+  --image us-central1-docker.pkg.dev/<PROJECT_ID>/research-agent/research-agent \
   --region us-central1 \
   --set-secrets ANTHROPIC_API_KEY=research-agent-anthropic-key:latest,RESEARCH_AGENT_API_KEY=research-agent-api-key:latest \
   --allow-unauthenticated
 ```
 
-(Create the two secrets in Secret Manager first: `gcloud secrets create ...`.)
+(Create the two secrets in Secret Manager first: `gcloud secrets create ...`,
+and grant the Cloud Run service account `roles/secretmanager.secretAccessor`.)
 Cloud Run scales to zero, so idle cost is ~$0 — good fit for low, bursty
-personal usage.
+personal usage. This manual path is what CI now runs automatically; use it
+directly only for one-off testing or if you're setting up a second environment.
 
 ### AWS (Fargate/App Runner equivalent)
 
