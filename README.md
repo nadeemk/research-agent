@@ -15,7 +15,7 @@ or a deployable HTTP API.
   by both the CLI and the API.
 - `src/research_agent/render.py` — renders a `CompanyReport` to Markdown.
   JSON (`report.model_dump_json()`) is the canonical form.
-- `src/research_agent/cli.py` — Typer CLI: `research-agent lookup "Company"`.
+- `src/research_agent/cli.py` — Typer CLI: `research-agent "Company"`.
 - `src/research_agent/api.py` — FastAPI app: `POST /research`.
 - `eval/` — a promptfoo eval suite (see below).
 
@@ -39,8 +39,8 @@ pytest
 CLI:
 
 ```bash
-research-agent lookup "Anthropic"
-research-agent lookup "Anthropic" --format json --out anthropic.json
+research-agent "Anthropic"
+research-agent "Anthropic" --format json --out anthropic.json
 ```
 
 API (local):
